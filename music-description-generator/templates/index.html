@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Description Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e7f0ff;
+            border-color: #667eea;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .audio-player {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .analysis-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+        }
+
+        .card-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .card-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .feature-bars {
+            margin-top: 20px;
+        }
+
+        .feature-bar {
+            margin-bottom: 15px;
+        }
+
+        .feature-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .bar-container {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 1s ease;
+            border-radius: 10px;
+        }
+
+        .instruments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .instrument-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .descriptions-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .format-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .format-tab {
+            padding: 12px 24px;
+            border: none;
+            background: #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .format-tab:hover {
+            background: #dee2e6;
+        }
+
+        .format-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .description-content {
+            display: none;
+        }
+
+        .description-content.active {
+            display: block;
+        }
+
+        .description-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .upload-section {
+                padding: 20px;
+            }
+
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎵 Music Description Generator</h1>
+            <p>AI-Powered Audio Analysis & Description Generation</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">🎧</div>
+                <div class="upload-text">Click to upload or drag & drop audio file</div>
+                <div class="upload-hint">Supports MP3, WAV, FLAC, OGG, M4A (Max 50MB)</div>
+                <input type="file" id="fileInput" class="file-input" accept="audio/*">
+            </div>
+            <div class="audio-player" id="audioPlayer">
+                <audio id="audioElement" controls></audio>
+            </div>
+            <div class="error" id="error"></div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="font-size: 1.2em; color: #333;">Analyzing audio with Hugging Face models...</p>
+            <p style="color: #666; margin-top: 10px;">This may take a moment</p>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <!-- Analysis Section -->
+            <div class="analysis-section">
+                <h2 class="section-title">📊 Audio Analysis Results</h2>
+                
+                <div class="analysis-grid" id="analysisGrid"></div>
+                
+                <div class="feature-bars" id="featureBars"></div>
+                
+                <div>
+                    <h3 style="margin-bottom: 10px;">🎸 Detected Instruments</h3>
+                    <div class="instruments" id="instruments"></div>
+                </div>
+            </div>
+
+            <!-- Descriptions Section -->
+            <div class="descriptions-section">
+                <h2 class="section-title">📝 Generated Descriptions</h2>
+                
+                <div class="format-tabs">
+                    <button class="format-tab active" data-format="youtube">YouTube</button>
+                    <button class="format-tab" data-format="podcast">Podcast</button>
+                    <button class="format-tab" data-format="library">Music Library</button>
+                    <button class="format-tab" data-format="social">Social Media</button>
+                </div>
+
+                <div id="descriptions">
+                    <div class="description-content active" data-format="youtube">
+                        <div class="description-box" id="desc-youtube"></div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="copyDescription('youtube')">
+                                📋 Copy to Clipboard
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadDescription('youtube')">
+                                💾 Download
+                            </button>
+                        </div>
+                    </div>
+                    <div class="description-content" data-format="podcast">
+                        <div class="description-box" id="desc-podcast"></div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="copyDescription('podcast')">
+                                📋 Copy to Clipboard
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadDescription('podcast')">
+                                💾 Download
+                            </button>
+                        </div>
+                    </div>
+                    <div class="description-content" data-format="library">
+                        <div class="description-box" id="desc-library"></div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="copyDescription('library')">
+                                📋 Copy to Clipboard
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadDescription('library')">
+                                💾 Download
+                            </button>
+                        </div>
+                    </div>
+                    <div class="description-content" data-format="social">
+                        <div class="description-box" id="desc-social"></div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="copyDescription('social')">
+                                📋 Copy to Clipboard
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadDescription('social')">
+                                💾 Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDescriptions = {};
+
+        // Upload area interactions
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = document.getElementById('audioElement');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            // Show audio player
+            const url = URL.createObjectURL(file);
+            audioElement.src = url;
+            audioPlayer.style.display = 'block';
+
+            // Upload and analyze
+            uploadAndAnalyze(file);
+        }
+
+        async function uploadAndAnalyze(file) {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+
+            // Hide results and errors
+            results.classList.remove('active');
+            error.classList.remove('active');
+
+            // Show loading
+            loading.classList.add('active');
+
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+
+                // Hide loading
+                loading.classList.remove('active');
+
+                // Display results
+                displayAnalysis(data.analysis);
+                displayDescriptions(data.descriptions);
+                results.classList.add('active');
+
+            } catch (err) {
+                loading.classList.remove('active');
+                error.textContent = err.message;
+                error.classList.add('active');
+            }
+        }
+
+        function displayAnalysis(analysis) {
+            // Analysis cards
+            const grid = document.getElementById('analysisGrid');
+            grid.innerHTML = `
+                <div class="analysis-card">
+                    <div class="card-label">Genre</div>
+                    <div class="card-value">${analysis.genre}</div>
+                    <div style="margin-top: 5px; font-size: 0.9em;">${analysis.sub_genre}</div>
+                </div>
+                <div class="analysis-card">
+                    <div class="card-label">Mood</div>
+                    <div class="card-value">${analysis.mood}</div>
+                </div>
+                <div class="analysis-card">
+                    <div class="card-label">Tempo</div>
+                    <div class="card-value">${analysis.tempo} BPM</div>
+                </div>
+                <div class="analysis-card">
+                    <div class="card-label">Key</div>
+                    <div class="card-value">${analysis.key}</div>
+                </div>
+                <div class="analysis-card">
+                    <div class="card-label">Duration</div>
+                    <div class="card-value">${analysis.duration}</div>
+                </div>
+                <div class="analysis-card">
+                    <div class="card-label">Time Signature</div>
+                    <div class="card-value">${analysis.time_signature}</div>
+                </div>
+            `;
+
+            // Feature bars
+            const bars = document.getElementById('featureBars');
+            bars.innerHTML = `
+                <div class="feature-bar">
+                    <div class="feature-label">
+                        <span>Energy</span>
+                        <span>${analysis.energy}%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${analysis.energy}%"></div>
+                    </div>
+                </div>
+                <div class="feature-bar">
+                    <div class="feature-label">
+                        <span>Danceability</span>
+                        <span>${analysis.danceability}%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${analysis.danceability}%"></div>
+                    </div>
+                </div>
+                <div class="feature-bar">
+                    <div class="feature-label">
+                        <span>Valence (Positivity)</span>
+                        <span>${analysis.valence}%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${analysis.valence}%"></div>
+                    </div>
+                </div>
+            `;
+
+            // Instruments
+            const instruments = document.getElementById('instruments');
+            instruments.innerHTML = analysis.instruments.map(inst => 
+                `<span class="instrument-tag">${inst}</span>`
+            ).join('');
+        }
+
+        function displayDescriptions(descriptions) {
+            currentDescriptions = descriptions;
+            document.getElementById('desc-youtube').textContent = descriptions.youtube;
+            document.getElementById('desc-podcast').textContent = descriptions.podcast;
+            document.getElementById('desc-library').textContent = descriptions.library;
+            document.getElementById('desc-social').textContent = descriptions.social;
+        }
+
+        // Format tab switching
+        document.querySelectorAll('.format-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const format = tab.dataset.format;
+                
+                // Update tabs
+                document.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.description-content').forEach(c => c.classList.remove('active'));
+                document.querySelector(`.description-content[data-format="${format}"]`).classList.add('active');
+            });
+        });
+
+        function copyDescription(format) {
+            const text = currentDescriptions[format];
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Description copied to clipboard!');
+            });
+        }
+
+        function downloadDescription(format) {
+            const text = currentDescriptions[format];
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `music_description_${format}.txt`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
